@@ -5,20 +5,33 @@ export function usePosts() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+
+  const fetchPosts = useCallback(async (pageNum = 1) => {
+    try {
+      setLoading(true);
+      const { data } = await postsAPI.getAll(pageNum);
+      if (data.length < 10) setHasMore(false);
+      
+      setPosts(prev => pageNum === 1 ? data : [...prev, ...data]);
+      setPage(pageNum);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to load posts");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const { data } = await postsAPI.getAll();
-        setPosts(data);
-      } catch (err) {
-        setError(err.response?.data?.message || "Failed to load posts");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPosts();
-  }, []);
+    fetchPosts(1);
+  }, [fetchPosts]);
+
+  const loadMore = useCallback(() => {
+    if (!loading && hasMore) {
+      fetchPosts(page + 1);
+    }
+  }, [loading, hasMore, page, fetchPosts]);
 
   const addPost = useCallback(async (content, image) => {
     try {
@@ -73,5 +86,5 @@ export function usePosts() {
     }
   }, []);
 
-  return { posts, loading, error, addPost, toggleLike, addComment };
+  return { posts, loading, error, addPost, toggleLike, addComment, loadMore, hasMore };
 }

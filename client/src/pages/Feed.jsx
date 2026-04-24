@@ -12,7 +12,7 @@ const fadeUp = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 } }
 
 export default function Feed() {
   const { user } = useAuth();
-  const { posts, loading, error, addPost, toggleLike, addComment } = usePosts();
+  const { posts, loading, error, addPost, toggleLike, addComment, loadMore, hasMore } = usePosts();
   const MotionDiv = motion.div;
 
   return (
@@ -100,6 +100,24 @@ export default function Feed() {
                 <PostCard post={post} onLike={toggleLike} onComment={addComment} />
               </MotionDiv>
             ))}
+
+            {hasMore && posts.length > 0 && (
+              <div className="pt-4 pb-2 text-center">
+                <button 
+                  onClick={loadMore} 
+                  disabled={loading}
+                  className="px-6 py-2 rounded-full text-sm font-medium bg-navy-900/40 text-electric-400 hover:bg-navy-900/60 border border-electric-400/20 transition-colors disabled:opacity-50"
+                >
+                  {loading ? "Loading..." : "Load More Posts"}
+                </button>
+              </div>
+            )}
+            
+            {!hasMore && posts.length > 0 && (
+              <p className="text-center text-xs text-navy-200 pt-4 pb-2">
+                You've caught up on all posts!
+              </p>
+            )}
           </MotionDiv>
         )}
       </main>
