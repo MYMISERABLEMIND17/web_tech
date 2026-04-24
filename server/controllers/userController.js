@@ -173,3 +173,19 @@ exports.rejectConnection = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// GET /api/users/me/requests
+exports.getMyRequests = async (req, res) => {
+  try {
+    const userId = req.user._id.toString();
+    if (process.env.MEMORY_DB === '1') {
+      res.json(memory.getMyRequests(userId));
+    } else {
+      const user = await User.findById(userId).populate('connectionRequests', 'name avatar');
+      if (!user) return res.status(404).json({ message: "User not found" });
+      res.json(user.connectionRequests);
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

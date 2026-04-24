@@ -53,6 +53,7 @@ export const usersAPI = {
   toggleConnection: (id) => api.post(`/users/${id}/connect`),
   acceptConnection: (id) => api.post(`/users/${id}/accept`),
   rejectConnection: (id) => api.post(`/users/${id}/reject`),
+  getRequests: () => api.get('/users/me/requests'),
 };
 
 export default api;

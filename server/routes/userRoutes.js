@@ -1,8 +1,9 @@
 const express = require('express');
 const router  = express.Router();
-const { getProfile, updateProfile, getUserPosts, getAllUsers, toggleConnection, acceptConnection, rejectConnection } = require('../controllers/userController');
+const { getProfile, updateProfile, getUserPosts, getAllUsers, toggleConnection, acceptConnection, rejectConnection, getMyRequests } = require('../controllers/userController');
 const { protect } = require('../middleware/authMiddleware');
 
+router.get('/me/requests', protect, getMyRequests);
 router.get('/', protect, getAllUsers);
 router.get('/:id',       protect, getProfile);
 router.put('/:id',       protect, updateProfile);

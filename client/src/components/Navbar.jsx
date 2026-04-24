@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
@@ -7,18 +8,56 @@ import {
   ArrowRightOnRectangleIcon,
   AcademicCapIcon,
   UsersIcon,
+  BellIcon,
 } from "@heroicons/react/24/outline";
 import {
   HomeIcon as HomeSolid,
   UserCircleIcon as UserSolid,
   UsersIcon as UsersSolid,
+  BellIcon as BellSolid,
 } from "@heroicons/react/24/solid";
+import { usersAPI } from "../services/api";
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, logout, setUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const MotionNav = motion.nav;
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [requests, setRequests] = useState([]);
+  const dropdownRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (showNotifications) {
+      usersAPI.getRequests().then(res => setRequests(res.data)).catch(console.error);
+    }
+  }, [showNotifications]);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleAccept = async (id) => {
+    try {
+      const res = await usersAPI.acceptConnection(id);
+      setUser(prev => ({ ...prev, connections: res.data.connections, connectionRequests: res.data.connectionRequests }));
+      setRequests(prev => prev.filter(r => r._id !== id));
+    } catch (err) { console.error(err); }
+  };
+
+  const handleDecline = async (id) => {
+    try {
+      const res = await usersAPI.rejectConnection(id);
+      setUser(prev => ({ ...prev, connectionRequests: res.data.connectionRequests }));
+      setRequests(prev => prev.filter(r => r._id !== id));
+    } catch (err) { console.error(err); }
+  };
 
   const handleLogout = () => {
     logout();
@@ -82,6 +121,53 @@ export default function Navbar() {
             )}
             <span className="text-xs font-medium">Profile</span>
           </Link>
+
+          {/* Notifications */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="nav-link relative"
+            >
+              {showNotifications ? <BellSolid className="w-5 h-5" /> : <BellIcon className="w-5 h-5" />}
+              <span className="text-xs font-medium">Alerts</span>
+              {user?.connectionRequests?.length > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-sm shadow-red-500/50" />
+              )}
+            </button>
+
+            {showNotifications && (
+              <div className="absolute top-full right-0 mt-2 w-80 glass-card rounded-xl shadow-xl overflow-hidden border border-navy-200/20 z-50">
+                <div className="p-3 border-b border-navy-200/10 bg-navy-900/30">
+                  <h3 className="text-sm font-semibold text-navy-50">Connection Requests</h3>
+                </div>
+                <div className="max-h-80 overflow-y-auto">
+                  {user?.connectionRequests?.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-navy-200">No pending requests</div>
+                  ) : requests.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-navy-200 animate-pulse">Loading...</div>
+                  ) : (
+                    requests.map(req => (
+                      <div key={req._id} className="p-3 border-b border-navy-200/5 flex items-center gap-3 hover:bg-navy-900/20 transition-colors">
+                        <Link to={`/profile/${req._id}`} onClick={() => setShowNotifications(false)}>
+                          <img src={req.avatar} alt={req.name} className="w-10 h-10 rounded-full object-cover border border-navy-200/20" />
+                        </Link>
+                        <div className="flex-1 min-w-0">
+                          <Link to={`/profile/${req._id}`} onClick={() => setShowNotifications(false)} className="text-sm font-medium text-navy-50 hover:text-electric-400 truncate block">
+                            {req.name}
+                          </Link>
+                          <p className="text-xs text-navy-200">wants to connect</p>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <button onClick={() => handleAccept(req._id)} className="px-2 py-1 text-[10px] font-bold bg-electric-500 hover:bg-electric-600 text-white rounded">Accept</button>
+                          <button onClick={() => handleDecline(req._id)} className="px-2 py-1 text-[10px] font-bold bg-navy-900/50 hover:bg-red-500/80 hover:text-white text-navy-200 rounded transition-colors">Decline</button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Avatar + Logout */}
           <div className="flex items-center gap-2 ml-2 pl-2 border-l border-cream-200">

@@ -167,7 +167,7 @@ export default function Network() {
                     onClick={() => handleConnect(user._id)}
                     className="w-full py-2 rounded-lg text-sm font-medium transition-colors bg-navy-900/80 hover:bg-red-500/80 hover:text-white text-navy-200 border border-navy-200/30 group relative"
                   >
-                    <span className="group-hover:hidden">Pending...</span>
+                    <span className="group-hover:hidden">Requested</span>
                     <span className="hidden group-hover:inline">Withdraw</span>
                   </button>
                 ) : (

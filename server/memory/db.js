@@ -150,6 +150,16 @@ function rejectConnection(userId, targetId) {
   return { userConnectionRequests: user.connectionRequests };
 }
 
+function getMyRequests(userId) {
+  const user = findUserById(userId);
+  if (!user) return [];
+  
+  return user.connectionRequests
+    .map(id => findUserById(id))
+    .filter(Boolean)
+    .map(u => ({ _id: u._id, name: u.name, avatar: u.avatar }));
+}
+
 function listPosts() {
   return [...state.posts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 }
@@ -231,6 +241,7 @@ module.exports = {
   toggleConnection,
   acceptConnection,
   rejectConnection,
+  getMyRequests,
   listPosts,
   createPost,
   findPostById,
