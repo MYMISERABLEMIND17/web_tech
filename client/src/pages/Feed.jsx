@@ -34,7 +34,7 @@ export default function Feed() {
             </div>
             <div className="mt-3 pt-3 border-t border-navy-200/10 flex justify-between text-center">
               <div>
-                <p className="text-sm font-bold text-navy-50">{user?.connections || 0}</p>
+                <p className="text-sm font-bold text-navy-50">{user?.connections?.length || 0}</p>
                 <p className="text-xs text-navy-200">Connections</p>
               </div>
               <div>
@@ -111,7 +111,10 @@ export default function Feed() {
             <AcademicCapIcon className="w-3.5 h-3.5" />
             Campus Network
           </h3>
-          <p className="text-xs text-navy-200">Connect with peers after more users join!</p>
+          <p className="text-xs text-navy-200 mb-3">Connect with peers to grow your network!</p>
+          <Link to="/network" className="w-full block text-center py-2 bg-navy-900/40 hover:bg-navy-900/60 text-electric-400 rounded-lg text-sm transition-colors border border-electric-400/20">
+            View All Users
+          </Link>
         </MotionDiv>
       </aside>
     </div>

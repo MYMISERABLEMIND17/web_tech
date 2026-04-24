@@ -46,9 +46,13 @@ export const postsAPI = {
 
 // Users
 export const usersAPI = {
+  getAllUsers: () => api.get("/users"),
   getProfile: (id) => api.get(`/users/${id}`),
   updateProfile: (id, data) => api.put(`/users/${id}`, data),
   getUserPosts: (id) => api.get(`/users/${id}/posts`),
+  toggleConnection: (id) => api.post(`/users/${id}/connect`),
+  acceptConnection: (id) => api.post(`/users/${id}/accept`),
+  rejectConnection: (id) => api.post(`/users/${id}/reject`),
 };
 
 export default api;

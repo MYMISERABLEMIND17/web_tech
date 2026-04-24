@@ -12,7 +12,9 @@ const userSchema = new mongoose.Schema({
   bio:         { type: String, default: '' },
   avatar:      { type: String, default: '' },
   skills:      [String],
-  connections: { type: Number, default: 0 },
+  connections: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  connectionRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  sentRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   followers:   [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   following:   [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 }, { timestamps: true });

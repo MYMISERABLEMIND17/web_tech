@@ -9,7 +9,7 @@ import { PencilSquareIcon, MapPinIcon, AcademicCapIcon, LinkIcon } from "@heroic
 
 export default function Profile() {
   const { userId } = useParams();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, setUser } = useAuth();
   const { toggleLike, addComment } = usePosts();
   const isOwner = userId === currentUser?._id;
   const MotionDiv = motion.div;
@@ -61,6 +61,52 @@ export default function Profile() {
     );
   }
 
+  const handleConnect = async () => {
+    try {
+      const res = await usersAPI.toggleConnection(userId);
+      setProfile(prev => ({
+        ...prev,
+        connectionRequests: res.data.sentRequests.includes(userId) 
+          ? [...(prev.connectionRequests || []), currentUser._id]
+          : (prev.connectionRequests || []).filter(id => id !== currentUser._id)
+      }));
+      setUser(prev => ({ ...prev, sentRequests: res.data.sentRequests }));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAccept = async () => {
+    try {
+      const res = await usersAPI.acceptConnection(userId);
+      setProfile(prev => ({
+        ...prev,
+        connections: [...(prev.connections || []), currentUser._id],
+        sentRequests: (prev.sentRequests || []).filter(id => id !== currentUser._id)
+      }));
+      setUser(prev => ({ ...prev, connections: res.data.connections, connectionRequests: res.data.connectionRequests }));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleReject = async () => {
+    try {
+      const res = await usersAPI.rejectConnection(userId);
+      setProfile(prev => ({
+        ...prev,
+        sentRequests: (prev.sentRequests || []).filter(id => id !== currentUser._id)
+      }));
+      setUser(prev => ({ ...prev, connectionRequests: res.data.connectionRequests }));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const isConnected = profile?.connections?.includes(currentUser?._id) || profile?.connections?.some(c => c._id === currentUser?._id);
+  const isPending = currentUser?.sentRequests?.includes(userId) || currentUser?.sentRequests?.some(r => r._id === userId);
+  const isIncoming = currentUser?.connectionRequests?.includes(userId) || currentUser?.connectionRequests?.some(r => r._id === userId);
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
       <MotionDiv initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card overflow-hidden mb-5">
@@ -80,10 +126,44 @@ export default function Profile() {
               alt={profile.name}
               className="w-20 h-20 rounded-full border border-navy-200/20 shadow-md object-cover"
             />
-            {isOwner && (
+            {isOwner ? (
               <button className="btn-secondary flex items-center gap-1.5 text-sm">
                 <PencilSquareIcon className="w-4 h-4" />
                 Edit profile
+              </button>
+            ) : isConnected ? (
+              <button className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-navy-900/50 text-navy-200 border border-navy-200/20 cursor-default">
+                Connected
+              </button>
+            ) : isIncoming ? (
+              <div className="flex gap-2">
+                <button 
+                  onClick={handleAccept}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-electric-500 hover:bg-electric-600 text-white shadow-md shadow-electric-500/20"
+                >
+                  Accept
+                </button>
+                <button 
+                  onClick={handleReject}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-red-500/80 hover:bg-red-600/80 text-white shadow-md shadow-red-500/20"
+                >
+                  Reject
+                </button>
+              </div>
+            ) : isPending ? (
+              <button 
+                onClick={handleConnect}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-navy-900/80 hover:bg-red-500/80 hover:text-white text-navy-200 border border-navy-200/30 group relative"
+              >
+                <span className="group-hover:hidden">Pending...</span>
+                <span className="hidden group-hover:inline">Withdraw</span>
+              </button>
+            ) : (
+              <button 
+                onClick={handleConnect}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-electric-500 hover:bg-electric-600 text-white shadow-md shadow-electric-500/20"
+              >
+                Connect
               </button>
             )}
           </div>
@@ -114,7 +194,7 @@ export default function Profile() {
 
           <div className="flex gap-5 mt-4 pt-4 border-t border-navy-200/10">
             {[
-              ["Connections", profile.connections || 0],
+              ["Connections", profile.connections?.length || 0],
               ["Followers", profile.followers?.length || 0],
               ["Following", profile.following?.length || 0],
               ["Posts", userPosts.length],

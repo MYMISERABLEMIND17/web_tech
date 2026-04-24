@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Feed from "./pages/Feed";
 import Profile from "./pages/Profile";
+import Network from "./pages/Network";
 
 // 🔥 Layout wrapper (WITH CHAT)
 function AppLayout({ children }) {
@@ -74,6 +75,17 @@ export default function App() {
               <ProtectedRoute>
                 <AppLayout>
                   <Profile />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/network"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Network />
                 </AppLayout>
               </ProtectedRoute>
             }

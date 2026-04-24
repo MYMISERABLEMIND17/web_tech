@@ -6,10 +6,12 @@ import {
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
   AcademicCapIcon,
+  UsersIcon,
 } from "@heroicons/react/24/outline";
 import {
   HomeIcon as HomeSolid,
   UserCircleIcon as UserSolid,
+  UsersIcon as UsersSolid,
 } from "@heroicons/react/24/solid";
 
 export default function Navbar() {
@@ -55,6 +57,18 @@ export default function Navbar() {
               <HomeIcon className="w-5 h-5" />
             )}
             <span className="text-xs font-medium">Home</span>
+          </Link>
+
+          <Link
+            to="/network"
+            className={`nav-link ${isActive("/network") ? "nav-link-active" : ""}`}
+          >
+            {isActive("/network") ? (
+              <UsersSolid className="w-5 h-5" />
+            ) : (
+              <UsersIcon className="w-5 h-5" />
+            )}
+            <span className="text-xs font-medium">Network</span>
           </Link>
 
           <Link

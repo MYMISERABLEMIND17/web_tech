@@ -7,7 +7,8 @@ const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expires
 const sanitizeUser = (user) => ({
   _id: user._id, name: user.name, email: user.email, username: user.username,
   college: user.college, branch: user.branch, year: user.year,
-  bio: user.bio, avatar: user.avatar, skills: user.skills, connections: user.connections,
+  bio: user.bio, avatar: user.avatar, skills: user.skills, 
+  connections: user.connections, connectionRequests: user.connectionRequests, sentRequests: user.sentRequests
 });
 
 exports.register = async (req, res) => {

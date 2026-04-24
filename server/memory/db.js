@@ -39,7 +39,9 @@ function ensureDefaultsForUser(user) {
     year: '',
     bio: '',
     skills: [],
-    connections: 0,
+    connections: [],
+    connectionRequests: [],
+    sentRequests: [],
     followers: [],
     following: [],
     ...user,
@@ -72,6 +74,10 @@ function findUserById(id) {
   return state.users.find((u) => u._id === id) || null;
 }
 
+function listUsers() {
+  return state.users.map(publicUser);
+}
+
 async function matchPassword(user, entered) {
   if (!user) return false;
   return bcrypt.compare(String(entered || ''), user.password);
@@ -82,6 +88,66 @@ function updateUserById(id, updates) {
   if (!user) return null;
   Object.assign(user, updates, { updatedAt: nowIso() });
   return user;
+}
+
+function toggleConnection(userId, targetId) {
+  const user = findUserById(userId);
+  const target = findUserById(targetId);
+  if (!user || !target) return false;
+
+  const sentIdx = user.sentRequests.findIndex((id) => id === targetId);
+  const reqIdx = target.connectionRequests.findIndex((id) => id === userId);
+
+  if (sentIdx >= 0) {
+    // Withdraw request
+    user.sentRequests.splice(sentIdx, 1);
+    if (reqIdx >= 0) target.connectionRequests.splice(reqIdx, 1);
+  } else {
+    // Send request
+    user.sentRequests.push(targetId);
+    if (reqIdx < 0) target.connectionRequests.push(userId);
+  }
+  
+  user.updatedAt = nowIso();
+  target.updatedAt = nowIso();
+  return { 
+    userSentRequests: user.sentRequests, 
+    targetConnectionRequests: target.connectionRequests 
+  };
+}
+
+function acceptConnection(userId, targetId) {
+  const user = findUserById(userId);
+  const target = findUserById(targetId);
+  if (!user || !target) return false;
+
+  // Remove from requests
+  user.connectionRequests = user.connectionRequests.filter(id => id !== targetId);
+  target.sentRequests = target.sentRequests.filter(id => id !== userId);
+
+  // Add to connections
+  if (!user.connections.includes(targetId)) user.connections.push(targetId);
+  if (!target.connections.includes(userId)) target.connections.push(userId);
+
+  user.updatedAt = nowIso();
+  target.updatedAt = nowIso();
+  return { 
+    userConnections: user.connections, 
+    userConnectionRequests: user.connectionRequests 
+  };
+}
+
+function rejectConnection(userId, targetId) {
+  const user = findUserById(userId);
+  const target = findUserById(targetId);
+  if (!user || !target) return false;
+
+  user.connectionRequests = user.connectionRequests.filter(id => id !== targetId);
+  target.sentRequests = target.sentRequests.filter(id => id !== userId);
+
+  user.updatedAt = nowIso();
+  target.updatedAt = nowIso();
+  return { userConnectionRequests: user.connectionRequests };
 }
 
 function listPosts() {
@@ -161,6 +227,10 @@ module.exports = {
   findUserById,
   matchPassword,
   updateUserById,
+  listUsers,
+  toggleConnection,
+  acceptConnection,
+  rejectConnection,
   listPosts,
   createPost,
   findPostById,
