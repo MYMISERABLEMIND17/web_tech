@@ -26,8 +26,16 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("cl_token");
   };
 
+  const updateUserData = (updater) => {
+    setUser(prev => {
+      const newData = typeof updater === 'function' ? updater(prev) : { ...prev, ...updater };
+      if (newData) localStorage.setItem("cl_user", JSON.stringify(newData));
+      return newData;
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, setUser: updateUserData }}>
       {!loading && children}
     </AuthContext.Provider>
   );
