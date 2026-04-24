@@ -103,9 +103,12 @@ export default function Profile() {
     }
   };
 
-  const isConnected = profile?.connections?.includes(currentUser?._id) || profile?.connections?.some(c => c._id === currentUser?._id);
-  const isPending = currentUser?.sentRequests?.includes(userId) || currentUser?.sentRequests?.some(r => r._id === userId);
-  const isIncoming = currentUser?.connectionRequests?.includes(userId) || currentUser?.connectionRequests?.some(r => r._id === userId);
+  const isConnected = 
+    profile?.connections?.some(c => (c._id || c) === currentUser?._id) || 
+    currentUser?.connections?.some(c => (c._id || c) === profile?._id);
+    
+  const isPending = currentUser?.sentRequests?.some(r => (r._id || r) === userId);
+  const isIncoming = currentUser?.connectionRequests?.some(r => (r._id || r) === userId);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
@@ -194,7 +197,7 @@ export default function Profile() {
 
           <div className="flex gap-5 mt-4 pt-4 border-t border-navy-200/10">
             {[
-              ["Connections", profile.connections?.length || 0],
+              ["Connections", isOwner ? (currentUser?.connections?.length || 0) : (profile.connections?.length || 0)],
               ["Followers", profile.followers?.length || 0],
               ["Following", profile.following?.length || 0],
               ["Posts", userPosts.length],
